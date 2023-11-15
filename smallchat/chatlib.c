@@ -20,6 +20,7 @@
  * =========================================================================== */
 
 /* Set the specified socket in non-blocking mode, with no delay flag. */
+/*使用fcntl和setoptopt使文件非阻塞和TCP非延迟*/
 int socketSetNonBlockNoDelay(int fd) {
     int flags, yes = 1;
 
@@ -35,6 +36,7 @@ int socketSetNonBlockNoDelay(int fd) {
 }
 
 /* Create a TCP socket listening to 'port' ready to accept connections. */
+/*创建socket，绑定端口*/
 int createTCPServer(int port) {
     int s, yes = 1;
     struct sockaddr_in sa;
@@ -72,8 +74,9 @@ int TCPConnect(char *addr, int port, int nonblock) {
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
+    /*域名解析,将addr:portstr存放到servinfo*/
     if (getaddrinfo(addr,portstr,&hints,&servinfo) != 0) return -1;
-
+    
     for (p = servinfo; p != NULL; p = p->ai_next) {
         /* Try to create the socket and to connect it.
          * If we fail in the socket() call, or on connect(), we retry with
