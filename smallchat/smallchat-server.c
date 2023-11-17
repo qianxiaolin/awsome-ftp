@@ -77,6 +77,7 @@ struct chatState *Chat; // Initialized at startup.
 struct client *createClient(int fd) {
     char nick[32]; // Used to create an initial nick for the user.
     int nicklen = snprintf(nick,sizeof(nick),"user:%d",fd);
+
     struct client *c = chatMalloc(sizeof(*c));
     socketSetNonBlockNoDelay(fd); // Pretend this will not fail.
     c->fd = fd;
@@ -149,6 +150,8 @@ void sendMsgToAllClientsBut(int excluded, char *s, size_t len) {
  * 2. Check if any client sent us some new message.
  * 3. Send the message to all the other clients. */
 int main(void) {
+
+    //创建TCP,使用select监听请求连接listen
     initChat();
 
     while(1) {
@@ -163,6 +166,7 @@ int main(void) {
         FD_SET(Chat->serversock, &readfds);
 
         for (int j = 0; j <= Chat->maxclient; j++) {
+            //客户端加入监听集合
             if (Chat->clients[j]) FD_SET(j, &readfds);
         }
 
@@ -176,6 +180,7 @@ int main(void) {
          * server socket itself. */
         int maxfd = Chat->maxclient;
         if (maxfd < Chat->serversock) maxfd = Chat->serversock;
+        //等待消息到来，到来select则返回
         retval = select(maxfd+1, &readfds, NULL, NULL, &tv);
         if (retval == -1) {
             perror("select() error");
@@ -184,8 +189,14 @@ int main(void) {
 
             /* If the listening socket is "readable", it actually means
              * there are new clients connections pending to accept. */
+
+            /*serversock--socketfd*/
+
+            
             if (FD_ISSET(Chat->serversock, &readfds)) {
-                int fd = acceptClient(Chat->serversock);
+                int fd = acceptClient(Chat->serversock);//chat接受accept
+
+                //将连接成功的client加入chat
                 struct client *c = createClient(fd);
                 /* Send a welcome message. */
                 char *welcome_msg =
@@ -200,6 +211,7 @@ int main(void) {
             char readbuf[256];
             for (int j = 0; j <= Chat->maxclient; j++) {
                 if (Chat->clients[j] == NULL) continue;
+                
                 if (FD_ISSET(j, &readfds)) {
                     /* Here we just hope that there is a well formed
                      * message waiting for us. But it is entirely possible

@@ -20,6 +20,7 @@
  * =========================================================================== */
 
 /* Set the specified socket in non-blocking mode, with no delay flag. */
+
 /*使用fcntl和setoptopt使文件非阻塞和TCP非延迟*/
 int socketSetNonBlockNoDelay(int fd) {
     int flags, yes = 1;
